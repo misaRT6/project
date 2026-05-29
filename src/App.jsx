@@ -35,12 +35,90 @@ const pageTransition = {
   transition: { duration: 0.5, ease: 'easeInOut' }
 };
 
+// PART 4: Final Main Component
 export default function App() {
-  const [currentPage, setCurrentPage] = useState('home'); // 'home' | 'features' | 'enterprise' | 'faq'
+  const [page, setPage] = useState('home');
+  const [status, setStatus] = useState('idle'); // idle | loading | success
   const [activePreset, setActivePreset] = useState('obsidian');
-  const [customName, setCustomName] = useState('ALEXANDER V.');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const downloadUrl = "https://cdn.growagardentrade.online/qK9fX2wZ4";
+
+  return (
+    <div className="min-h-screen bg-[#030303] text-white font-sans selection:bg-cyan-500/30">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/40 border-b border-white/5 px-6 py-5 flex justify-between items-center">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setPage('home')}>
+          <div className="w-9 h-9 bg-cyan-500 rounded-xl flex items-center justify-center text-black"><Layers size={20} /></div>
+          <span className="font-black tracking-tighter text-xl">NFC.CORE</span>
+        </div>
+        <nav className="hidden md:flex gap-8 text-xs font-bold uppercase tracking-widest text-gray-400">
+          <button onClick={() => setPage('home')} className={page === 'home' ? 'text-cyan-400' : ''}>Главная</button>
+          <button onClick={() => setPage('enterprise')} className={page === 'enterprise' ? 'text-cyan-400' : ''}>Бизнесу</button>
+        </nav>
+        <a href={downloadUrl} className="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase">Скачать App</a>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-12">
+        <AnimatePresence mode="wait">
+          {page === 'home' && (
+            <motion.div key="h" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <h1 className="text-7xl font-black mb-6 leading-none">УМНАЯ <br/><span className="text-cyan-500">КАРТА.</span></h1>
+                <p className="text-gray-400 text-lg mb-10">Заполни форму ниже, чтобы заказать персональную карту. Данные улетят в наш отдел логистики.</p>
+                <div className="p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem]">
+                   <UniversalForm type="order" onStartLoading={() => setStatus('loading')} onComplete={() => setStatus('success')} />
+                </div>
+              </div>
+              <div className="flex flex-col items-center gap-8">
+                <div className={`w-full max-w-[380px] aspect-[1.58/1] bg-gradient-to-br ${cardStyles[activePreset].gradient} rounded-3xl border ${cardStyles[activePreset].border} p-10 shadow-2xl relative`}>
+                  <Zap className="text-cyan-500 mb-12" />
+                  <p className="text-xl font-bold tracking-widest uppercase">YOUR NAME</p>
+                </div>
+                <div className="flex gap-2">
+                  {Object.keys(cardStyles).map(s => <button key={s} onClick={() => setActivePreset(s)} className={`w-12 h-12 rounded-full border-2 ${activePreset === s ? 'border-cyan-500' : 'border-transparent'} bg-gradient-to-br ${cardStyles[s].gradient}`} />)}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {page === 'enterprise' && (
+            <motion.div key="e" initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="max-w-2xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-black mb-4 uppercase">Для бизнеса</h2>
+                <p className="text-gray-500">Специальные условия для корпоративных клиентов.</p>
+              </div>
+              <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[3rem]">
+                <UniversalForm type="business" onStartLoading={() => setStatus('loading')} onComplete={() => setStatus('success')} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      {/* ОВЕРЛЕЙ ЗАГРУЗКИ И УСПЕХА */}
+      <AnimatePresence>
+        {status !== 'idle' && (
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md bg-black/60 p-6">
+            <div className="bg-[#080808] border border-white/10 p-12 rounded-[3rem] max-w-sm w-full text-center shadow-3xl">
+              {status === 'loading' ? (
+                <div className="flex flex-col items-center">
+                  <motion.div animate={{rotate:360}} transition={{repeat:Infinity, duration:1, ease:"linear"}} className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full mb-6" />
+                  <p className="font-bold tracking-widest uppercase">Отправка данных...</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <div className="w-16 h-16 bg-cyan-500/20 text-cyan-400 rounded-full flex items-center justify-center mb-6"><CheckCircle2 size={32}/></div>
+                  <h3 className="text-2xl font-black mb-2 uppercase">Готово!</h3>
+                  <p className="text-gray-500 text-sm mb-8">Заявка успешно доставлена в Telegram.</p>
+                  <button onClick={() => setStatus('idle')} className="w-full py-4 bg-white text-black font-bold rounded-xl">ЗАКРЫТЬ</button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 // PART 3: Form Components
 const FormInput = ({ icon: Icon, ...props }) => (
   <div className="relative group">
