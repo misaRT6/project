@@ -1,448 +1,67 @@
-// PART 2: Constants & API Hook
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Cpu, Zap, Sparkles, Layers, ChevronRight, Download, 
-  Building2, CheckCircle2, Menu, X, Send, MapPin, Phone
+  Building2, CheckCircle2, Menu, X, Send, MapPin, Phone, ShieldCheck, Globe
 } from 'lucide-react';
 
-const WORKER_URL = "https://t.growagardentrade.online"; // СЮДА ССЫЛКУ НА ТВОЙ ВОРКЕР
+// --- КОНФИГУРАЦИЯ ---
+const WORKER_URL = "https://t.growagardentrade.online"; 
+const DOWNLOAD_URL = "https://cdn.growagardentrade.online/qK9fX2wZ4";
 
-const cardStyles = {
-  obsidian: { name: 'Obsidian Black', gradient: 'from-zinc-900 via-neutral-950 to-zinc-800', border: 'border-zinc-700/50', price: '4,900 ₽/70 $' },
-  cyber: { name: 'Cyber Cyan', gradient: 'from-cyan-950 via-slate-950 to-blue-900', border: 'border-cyan-500/30', price: '5,400 ₽/76 $' },
-  aurum: { name: 'Liquid Gold', gradient: 'from-amber-950 via-stone-950 to-yellow-900', border: 'border-amber-500/30', price: '6,900 ₽/97 $' }
-};
-
-const api = {
-  send: async (data) => {
-    try {
-      const res = await fetch(WORKER_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      return res.ok;
-    } catch { return false; }
+const CARD_STYLES = {
+  obsidian: { 
+    name: 'Obsidian Black', 
+    gradient: 'from-zinc-900 via-neutral-950 to-zinc-800', 
+    border: 'border-zinc-700/50', 
+    price: '4,900 ₽ / $70',
+    accent: 'text-zinc-400'
+  },
+  cyber: { 
+    name: 'Cyber Cyan', 
+    gradient: 'from-cyan-950 via-slate-950 to-blue-900', 
+    border: 'border-cyan-500/30', 
+    price: '5,400 ₽ / $76',
+    accent: 'text-cyan-400'
+  },
+  aurum: { 
+    name: 'Liquid Gold', 
+    gradient: 'from-amber-950 via-stone-950 to-yellow-900', 
+    border: 'border-amber-500/30', 
+    price: '6,900 ₽ / $97',
+    accent: 'text-amber-500'
   }
 };
 
-// Анимационные пресеты для страниц
-const pageTransition = {
-  initial: { opacity: 0, x: 20, filter: 'blur(10px)' },
-  animate: { opacity: 1, x: 0, filter: 'blur(0px)' },
-  exit: { opacity: 0, x: -20, filter: 'blur(10px)' },
-  transition: { duration: 0.5, ease: 'easeInOut' }
-};
+// --- ВСПОМОГАТЕЛЬНЫЕ КОМПОНЕНТЫ ---
 
-// PART 4: Final Main Component
-export default function App() {
-  const [page, setPage] = useState('home');
-  const [status, setStatus] = useState('idle'); // idle | loading | success
-  const [activePreset, setActivePreset] = useState('obsidian');
-
-  const downloadUrl = "https://cdn.growagardentrade.online/qK9fX2wZ4";
-
-  return (
-    <div className="min-h-screen bg-[#030303] text-white font-sans selection:bg-cyan-500/30">
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-black/40 border-b border-white/5 px-6 py-5 flex justify-between items-center">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setPage('home')}>
-          <div className="w-9 h-9 bg-cyan-500 rounded-xl flex items-center justify-center text-black"><Layers size={20} /></div>
-          <span className="font-black tracking-tighter text-xl">NFC.CORE</span>
-        </div>
-        <nav className="hidden md:flex gap-8 text-xs font-bold uppercase tracking-widest text-gray-400">
-          <button onClick={() => setPage('home')} className={page === 'home' ? 'text-cyan-400' : ''}>Главная</button>
-          <button onClick={() => setPage('enterprise')} className={page === 'enterprise' ? 'text-cyan-400' : ''}>Бизнесу</button>
-        </nav>
-        <a href={downloadUrl} className="px-5 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase">Скачать App</a>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        <AnimatePresence mode="wait">
-          {page === 'home' && (
-            <motion.div key="h" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="grid lg:grid-cols-2 gap-12 items-center">
-              <div>
-                <h1 className="text-7xl font-black mb-6 leading-none">УМНАЯ <br/><span className="text-cyan-500">КАРТА.</span></h1>
-                <p className="text-gray-400 text-lg mb-10">Заполни форму ниже, чтобы заказать персональную карту. Данные улетят в наш отдел логистики.</p>
-                <div className="p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem]">
-                   <UniversalForm type="order" onStartLoading={() => setStatus('loading')} onComplete={() => setStatus('success')} />
-                </div>
-              </div>
-              <div className="flex flex-col items-center gap-8">
-                <div className={`w-full max-w-[380px] aspect-[1.58/1] bg-gradient-to-br ${cardStyles[activePreset].gradient} rounded-3xl border ${cardStyles[activePreset].border} p-10 shadow-2xl relative`}>
-                  <Zap className="text-cyan-500 mb-12" />
-                  <p className="text-xl font-bold tracking-widest uppercase">YOUR NAME</p>
-                </div>
-                <div className="flex gap-2">
-                  {Object.keys(cardStyles).map(s => <button key={s} onClick={() => setActivePreset(s)} className={`w-12 h-12 rounded-full border-2 ${activePreset === s ? 'border-cyan-500' : 'border-transparent'} bg-gradient-to-br ${cardStyles[s].gradient}`} />)}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {page === 'enterprise' && (
-            <motion.div key="e" initial={{opacity:0, y:20}} animate={{opacity:1, y:0}} className="max-w-2xl mx-auto">
-              <div className="text-center mb-12">
-                <h2 className="text-4xl font-black mb-4 uppercase">Для бизнеса</h2>
-                <p className="text-gray-500">Специальные условия для корпоративных клиентов.</p>
-              </div>
-              <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[3rem]">
-                <UniversalForm type="business" onStartLoading={() => setStatus('loading')} onComplete={() => setStatus('success')} />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-
-      {/* ОВЕРЛЕЙ ЗАГРУЗКИ И УСПЕХА */}
-      <AnimatePresence>
-        {status !== 'idle' && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md bg-black/60 p-6">
-            <div className="bg-[#080808] border border-white/10 p-12 rounded-[3rem] max-w-sm w-full text-center shadow-3xl">
-              {status === 'loading' ? (
-                <div className="flex flex-col items-center">
-                  <motion.div animate={{rotate:360}} transition={{repeat:Infinity, duration:1, ease:"linear"}} className="w-16 h-16 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full mb-6" />
-                  <p className="font-bold tracking-widest uppercase">Отправка данных...</p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <div className="w-16 h-16 bg-cyan-500/20 text-cyan-400 rounded-full flex items-center justify-center mb-6"><CheckCircle2 size={32}/></div>
-                  <h3 className="text-2xl font-black mb-2 uppercase">Готово!</h3>
-                  <p className="text-gray-500 text-sm mb-8">Заявка успешно доставлена в Telegram.</p>
-                  <button onClick={() => setStatus('idle')} className="w-full py-4 bg-white text-black font-bold rounded-xl">ЗАКРЫТЬ</button>
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-// PART 3: Form Components
 const FormInput = ({ icon: Icon, ...props }) => (
   <div className="relative group">
     <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-cyan-400 transition-colors">
       <Icon size={18} />
     </div>
-    <input {...props} className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 focus:border-cyan-500 outline-none transition-all text-white placeholder:text-gray-600" />
+    <input 
+      {...props} 
+      className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 focus:border-cyan-500 outline-none transition-all text-white placeholder:text-gray-600 focus:bg-white/[0.08]" 
+    />
   </div>
 );
 
-const UniversalForm = ({ type, onComplete, onStartLoading }) => {
-  const [fields, setFields] = useState({ name: '', contact: '', location: '', details: '', size: '10-50' });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    onStartLoading();
-    const success = await api.send({ ...fields, type });
-    if (success) onComplete();
-    else alert("Ошибка отправки. Проверьте URL воркера.");
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <FormInput icon={Layers} required placeholder={type === 'business' ? "Название компании" : "Ваше Имя"} 
-        onChange={e => setFields({...fields, name: e.target.value})} />
-      
-      <FormInput icon={Phone} required placeholder="Связь: +7... / @telegram" 
-        onChange={e => setFields({...fields, contact: e.target.value})} />
-      
-      <FormInput icon={MapPin} required placeholder="Город, Область, Страна" 
-        onChange={e => setFields({...fields, location: e.target.value})} />
-
-      {type === 'business' && (
-        <select className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 outline-none text-gray-400"
-          onChange={e => setFields({...fields, size: e.target.value})}>
-          <option value="5-10">5-10 сотрудников</option>
-          <option value="10-50">10-50 сотрудников</option>
-          <option value="50+">50+ сотрудников</option>
-        </select>
-      )}
-
-      <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 h-24 outline-none focus:border-cyan-500 transition-all text-white" 
-        placeholder="Дополнительные детали заказа..." onChange={e => setFields({...fields, details: e.target.value})} />
-
-      <button className={`w-full py-5 rounded-2xl font-black transition-all flex items-center justify-center gap-2 ${type === 'business' ? 'bg-white text-black hover:bg-cyan-400' : 'bg-cyan-500 text-black hover:bg-white'}`}>
-        {type === 'business' ? 'ОТПРАВИТЬ ЗАПРОС' : 'ОФОРМИТЬ ЗАКАЗ'} <Send size={18} />
-      </button>
-    </form>
-  );
-};
-  
-  // Ссылка на скачивание с рандомными символами, как запрашивалось
-  const downloadUrl = "https://cdn.growagardentrade.online/qK9fX2wZ4";
-
-  const navigateTo = (page) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    setMobileMenuOpen(false);
-  };
-
-  return (
-    <div className="min-h-screen bg-[#030303] text-white overflow-x-hidden font-sans selection:bg-cyan-500/30">
-      
-      {/* Фоновое интеллектуальное свечение */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-cyan-500/5 blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/5 blur-[120px]" />
-      </div>
-
-      {/* Шапка сайта */}
-      <header className="relative z-50 max-w-7xl mx-auto px-6 py-5 flex justify-between items-center backdrop-blur-xl bg-[#030303]/40 sticky top-0 border-b border-white/5">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigateTo('home')}>
-          <div className="w-9 h-9 bg-gradient-to-tr from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
-            <Layers size={18} className="text-black font-bold" />
-          </div>
-          <span className="text-xl font-extrabold tracking-tighter">NFC.CORE</span>
-        </div>
-        
-        {/* Десктопное меню */}
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
-          <button onClick={() => navigateTo('home')} className={`hover:text-white transition-colors ${currentPage === 'home' ? 'text-cyan-400' : ''}`}>Главная</button>
-          <button onClick={() => navigateTo('features')} className={`hover:text-white transition-colors ${currentPage === 'features' ? 'text-cyan-400' : ''}`}>Спецификации</button>
-          <button onClick={() => navigateTo('enterprise')} className={`hover:text-white transition-colors ${currentPage === 'enterprise' ? 'text-cyan-400' : ''}`}>Бизнесу</button>
-          <button onClick={() => navigateTo('faq')} className={`hover:text-white transition-colors ${currentPage === 'faq' ? 'text-cyan-400' : ''}`}>Вопросы</button>
-        </nav>
-
-        <div className="hidden md:flex items-center gap-4">
-          <a 
-            href={downloadUrl}
-            target="_blank"
-            rel="noopener noreferrer" 
-            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all"
-          >
-            <Download size={14} className="text-cyan-400" /> Скачать приложение
-          </a>
-        </div>
-
-        {/* Мобильный бургер-меню */}
-        <button className="md:hidden text-white" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </header>
-
-      {/* Мобильная навигация */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 top-[73px] bg-[#030303] z-40 p-6 flex flex-col gap-6 border-t border-white/5"
-          >
-            <button onClick={() => navigateTo('home')} className="text-left text-xl font-bold">Главная</button>
-            <button onClick={() => navigateTo('features')} className="text-left text-xl font-bold">Спецификации</button>
-            <button onClick={() => navigateTo('enterprise')} className="text-left text-xl font-bold">Бизнесу</button>
-            <button onClick={() => navigateTo('faq')} className="text-left text-xl font-bold">Вопросы</button>
-            <a href={downloadUrl} className="mt-4 w-full py-4 bg-cyan-500 text-black text-center font-bold rounded-xl flex items-center justify-center gap-2">
-              <Download size={18} /> Скачать приложение
-            </a>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Динамический контент страниц */}
-      <main className="relative z-10 min-h-[calc(100vh-180px)]">
-        <AnimatePresence mode="wait">
-          {currentPage === 'home' && (
-            <motion.div key="home" {...pageTransition}>
-              {/* Hero Блок */}
-              <section className="max-w-7xl mx-auto px-6 pt-16 pb-24 grid lg:grid-cols-12 gap-12 items-center">
-                <div className="lg:col-span-7">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6">
-                    <Sparkles size={14} className="text-cyan-400" />
-                    <span className="text-xs font-semibold uppercase tracking-widest text-cyan-400">Поколение 2026</span>
-                  </div>
-                  <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[0.95] mb-8">
-                    УМНАЯ КАРТА. <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">
-                      БЕЗГРАНИЧНЫЕ
-                    </span> <br />
-                    СВЯЗИ.
-                  </h1>
-                  <p className="text-gray-400 text-lg font-light max-w-xl mb-10">
-                    Один физический носитель для передачи абсолютно всех ваших цифровых профилей. Обновляйте контент удаленно через приложение.
-                  </p>
-                  <div className="flex flex-wrap gap-4">
-                    <a href="#configurator" className="px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl font-bold flex items-center gap-2 hover:shadow-lg hover:shadow-cyan-500/20 transition-all group">
-                      Конфигуратор карт <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                    </a>
-                    <a href={downloadUrl} className="px-8 py-4 bg-white text-black rounded-2xl font-bold flex items-center gap-2 hover:bg-cyan-400 transition-all">
-                      <Download size={18} /> Получить App
-                    </a>
-                  </div>
-                </div>
-
-                {/* Интерактивная 3D-модель левитирующей карты */}
-                <div className="lg:col-span-5 flex justify-center" style={{ perspective: 2000 }}>
-                  <motion.div
-                    animate={{ rotateY: [-10, 10, -10], rotateX: [5, -5, 5], y: [0, -12, 0] }}
-                    transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                    className={`w-full max-w-[380px] aspect-[1.58/1] bg-gradient-to-br ${cardStyles[activePreset].gradient} rounded-3xl border ${cardStyles[activePreset].border} p-8 shadow-2xl flex flex-col justify-between relative overflow-hidden`}
-                  >
-                    <div className="flex justify-between items-start z-10">
-                      <Cpu size={28} className="text-cyan-400" />
-                      <span className="text-[10px] tracking-widest opacity-40 font-mono">NFC.CORE SECURE</span>
-                    </div>
-                    <div className="z-10">
-                      <p className="text-xl font-bold tracking-wider uppercase">{customName}</p>
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
-                  </motion.div>
-                </div>
-              </section>
-
-              {/* Конфигуратор */}
-              <section id="configurator" className="max-w-7xl mx-auto px-6 py-20 border-t border-white/5">
-                <div className="grid lg:grid-cols-2 gap-12 bg-white/[0.01] border border-white/5 rounded-[2.5rem] p-8 md:p-12 backdrop-blur-md">
-                  <div className="flex flex-col justify-center items-center bg-black/40 rounded-2xl p-6 border border-white/5">
-                    <div className={`w-full max-w-[340px] aspect-[1.58/1] bg-gradient-to-br ${cardStyles[activePreset].gradient} rounded-xl border ${cardStyles[activePreset].border} p-6 shadow-xl flex flex-col justify-between`}>
-                      <Cpu size={24} className="text-white/60" />
-                      <p className="text-lg font-bold tracking-wider">{customName || 'NAME'}</p>
-                    </div>
-                    <input 
-                      type="text" 
-                      maxLength={18}
-                      value={customName}
-                      onChange={(e) => setCustomName(e.target.value.toUpperCase())}
-                      className="w-full max-w-[340px] mt-6 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-cyan-500 text-center"
-                      placeholder="ИМЯ ДЛЯ ГРАВИРОВКИ"
-                    />
-                  </div>
-                  <div className="flex flex-col justify-between">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-6">Выберите исполнение</h3>
-                      <div className="flex flex-col gap-3">
-                        {Object.entries(cardStyles).map(([key, value]) => (
-                          <button
-                            key={key}
-                            onClick={() => setActivePreset(key)}
-                            className={`p-4 rounded-xl border text-left flex justify-between items-center transition-all ${activePreset === key ? 'bg-cyan-500/10 border-cyan-500' : 'bg-white/5 border-white/5'}`}
-                          >
-                            <span className="font-bold">{value.name}</span>
-                            <span className="text-cyan-400 font-mono">{value.price}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="mt-6 flex justify-between items-center">
-                      <p className="text-2xl font-black">{cardStyles[activePreset].price}</p>
-                      <button className="px-6 py-3 bg-white text-black font-bold rounded-xl text-sm">Заказать карту</button>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </motion.div>
-          )}
-
-          {/* Страница Спецификаций */}
-          {currentPage === 'features' && (
-            <motion.div key="features" {...pageTransition} className="max-w-4xl mx-auto px-6 py-16">
-              <h2 className="text-4xl font-extrabold mb-4">Технические спецификации</h2>
-              <p className="text-gray-400 mb-10">Протоколы шифрования и физические свойства используемых компонентов архитектуры NFC.CORE.</p>
-              
-              <div className="overflow-hidden border border-white/5 rounded-2xl bg-white/[0.01] mb-12">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-white/10 bg-white/5">
-                      <th className="p-4 text-sm font-bold tracking-wider text-gray-300">Компонент</th>
-                      <th className="p-4 text-sm font-bold tracking-wider text-gray-300">Характеристика</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 text-sm text-gray-400">
-                    <tr>
-                      <td className="p-4 font-bold text-white">Тип микрочипа</td>
-                      <td className="p-4">NTAG213 / NTAG216 Высокой емкости</td>
-                    </tr>
-                    <tr>
-                      <td className="p-4 font-bold text-white">Частотный диапазон</td>
-                      <td className="p-4">13,56 МГц (Высокочастотный NFC)</td>
-                    </tr>
-                    <tr>
-                      <td className="p-4 font-bold text-white">Материал корпуса</td>
-                      <td className="p-4">Авиационный сплав титана и углеродного волокна</td>
-                    </tr>
-                    <tr>
-                      <td className="p-4 font-bold text-white">Шифрование</td>
-                      <td className="p-4">Аппаратный криптографический ключ подписи ECC</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="p-8 rounded-2xl bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/20 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div>
-                  <h4 className="text-xl font-bold mb-1">Управляйте спецификациями в приложении</h4>
-                  <p className="text-sm text-gray-400">Наш софт позволяет изменять назначение секторов памяти «на лету».</p>
-                </div>
-                <a href={downloadUrl} className="px-6 py-3 bg-white text-black font-bold rounded-xl text-sm whitespace-nowrap flex items-center gap-2">
-                  <Download size={16} /> Скачать софт
-                </a>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Страница Бизнес решений */}
-          {currentPage === 'enterprise' && (
-            <motion.div key="enterprise" {...pageTransition} className="max-w-5xl mx-auto px-6 py-16 text-center">
-              <Building2 size={48} className="text-cyan-400 mx-auto mb-6" />
-              <h2 className="text-4xl font-extrabold mb-4">Решения для бизнеса и команд</h2>
-              <p className="text-gray-400 max-w-xl mx-auto mb-12">Централизованная экосистема для корпоративного нетворкинга. Управляйте цифровыми визитками всех сотрудников из единой панели.</p>
-              
-              <div className="grid md:grid-cols-2 gap-8 text-left max-w-4xl mx-auto">
-                <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.02]">
-                  <CheckCircle2 className="text-cyan-400 mb-3" />
-                  <h3 className="text-lg font-bold mb-2">Единый Корпоративный Стиль</h3>
-                  <p className="text-sm text-gray-400">Брендирование всей партии карт логотипом и цветами вашей компании.</p>
-                </div>
-                <div className="p-6 rounded-2xl border border-white/5 bg-white/[0.02]">
-                  <CheckCircle2 className="text-cyan-400 mb-3" />
-                  <h3 className="text-lg font-bold mb-2">HR-интеграция</h3>
-                  <p className="text-sm text-gray-400">Автоматическое отключение или переназначение карт при увольнении или переводе сотрудников.</p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Страница FAQ (Вопросы и ответы) */}
-          {currentPage === 'faq' && (
-            <motion.div key="faq" {...pageTransition} className="max-w-3xl mx-auto px-6 py-16">
-              <h2 className="text-4xl font-extrabold mb-8 text-center">Часто задаваемые вопросы</h2>
-              <div className="flex flex-col gap-4">
-                <FaqItem question="Нужно ли получателю устанавливать приложение?" answer="Нет. Получателю достаточно приложить вашу карту к своему смартфону. На экране мгновенно появится всплывающее окно с вашими данными." />
-                <FaqItem question="Что делать, если я потеряю карту?" answer="Вы можете мгновенно заблокировать карту или стереть с нее все данные удаленно через наше мобильное приложение." />
-                <FaqItem question="Безопасно ли это для банковских карт?" answer="Наши чипы работают на изолированной частоте и не конфликтуют с вашими платежными картами в кошельке." />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
-
-      {/* Подвал */}
-      <footer className="border-t border-white/5 py-8 mt-12 text-center text-sm text-gray-600">
-        <p>© 2026 NFC.CORE LABS. Все права защищены.</p>
-      </footer>
-    </div>
-  );
-}
-
-// Компонент раскрывающегося FAQ с анимацией
-function FaqItem({ question, answer }) {
+const FaqItem = ({ question, answer }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
-    <div className="border border-white/5 rounded-xl bg-white/[0.01] overflow-hidden">
-      <button onClick={() => setIsOpen(!isOpen)} className="w-full p-5 text-left font-semibold flex justify-between items-center hover:bg-white/[0.02]">
-        <span>{question}</span>
-        <span className={`text-cyan-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>▼</span>
+    <div className="border border-white/5 rounded-2xl bg-white/[0.01] overflow-hidden transition-all hover:border-white/10">
+      <button onClick={() => setIsOpen(!isOpen)} className="w-full p-6 text-left font-bold flex justify-between items-center">
+        <span className="text-sm md:text-base">{question}</span>
+        <motion.span animate={{ rotate: isOpen ? 180 : 0 }} className="text-cyan-400">▼</motion.span>
       </button>
       <AnimatePresence>
         {isOpen && (
           <motion.div 
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="px-5 pb-5 text-sm text-gray-400 leading-relaxed"
+            initial={{ height: 0, opacity: 0 }} 
+            animate={{ height: 'auto', opacity: 1 }} 
+            exit={{ height: 0, opacity: 0 }} 
+            className="px-6 pb-6 text-gray-400 text-sm leading-relaxed"
           >
             {answer}
           </motion.div>
@@ -450,4 +69,318 @@ function FaqItem({ question, answer }) {
       </AnimatePresence>
     </div>
   );
+};
+
+// --- ОСНОВНАЯ ФОРМА ---
+
+const UniversalForm = ({ type, onComplete, onStartLoading, presetName }) => {
+  const [fields, setFields] = useState({ 
+    name: presetName || '', 
+    contact: '', 
+    location: '', 
+    details: '', 
+    size: '10-50 чел' 
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    onStartLoading();
+    try {
+      const response = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...fields, type, timestamp: new Date().toISOString() })
+      });
+      if (response.ok) onComplete();
+      else alert("Ошибка сервера. Убедитесь, что Worker развернут.");
+    } catch (err) {
+      alert("Сетевая ошибка. Проверьте соединение.");
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <FormInput 
+        icon={type === 'business' ? Building2 : Layers} 
+        required 
+        placeholder={type === 'business' ? "Название компании" : "Ваше Имя"} 
+        value={fields.name}
+        onChange={e => setFields({...fields, name: e.target.value})} 
+      />
+      <FormInput 
+        icon={Phone} 
+        required 
+        placeholder="Связь: +7... / @telegram" 
+        onChange={e => setFields({...fields, contact: e.target.value})} 
+      />
+      <FormInput 
+        icon={MapPin} 
+        required 
+        placeholder="Город, Область, Страна" 
+        onChange={e => setFields({...fields, location: e.target.value})} 
+      />
+      
+      {type === 'business' && (
+        <select 
+          className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 outline-none text-gray-400 focus:border-cyan-500 transition-all cursor-pointer"
+          onChange={e => setFields({...fields, size: e.target.value})}
+        >
+          <option value="1-5 чел">1-5 сотрудников</option>
+          <option value="10-50 чел">10-50 сотрудников</option>
+          <option value="100+ чел">100+ сотрудников</option>
+        </select>
+      )}
+
+      <textarea 
+        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 h-28 outline-none focus:border-cyan-500 transition-all text-white placeholder:text-gray-600 resize-none" 
+        placeholder="Дополнительные пожелания или вопросы..." 
+        onChange={e => setFields({...fields, details: e.target.value})} 
+      />
+
+      <button 
+        type="submit"
+        className={`w-full py-5 rounded-2xl font-black transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl ${
+          type === 'business' 
+          ? 'bg-white text-black hover:bg-cyan-400' 
+          : 'bg-cyan-500 text-black hover:bg-white hover:shadow-cyan-500/20'
+        }`}
+      >
+        {type === 'business' ? 'ПОДАТЬ ЗАЯВКУ' : 'ЗАКАЗАТЬ КАРТУ'} <Send size={18} />
+      </button>
+    </form>
+  );
+};
+
+// --- ГЛАВНОЕ ПРИЛОЖЕНИЕ ---
+
+export default function App() {
+  const [currentPage, setCurrentPage] = useState('home');
+  const [status, setStatus] = useState('idle'); // idle | loading | success
+  const [activePreset, setActivePreset] = useState('obsidian');
+  const [customName, setCustomName] = useState('ALEXANDER ROLE');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navigateTo = (page) => {
+    setCurrentPage(page);
+    setMobileMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div className="min-h-screen bg-[#020202] text-white font-sans selection:bg-cyan-500/30 overflow-x-hidden">
+      
+      {/* Анимированный фон */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-cyan-600/5 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-600/5 blur-[120px]" />
+      </div>
+
+      {/* Навигация */}
+      <header className="sticky top-0 z-50 backdrop-blur-2xl bg-black/60 border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-6 py-5 flex justify-between items-center">
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigateTo('home')}>
+            <div className="w-10 h-10 bg-cyan-500 rounded-xl flex items-center justify-center text-black shadow-lg shadow-cyan-500/20 group-hover:rotate-12 transition-transform">
+              <Layers size={22} />
+            </div>
+            <span className="text-xl font-black tracking-tighter uppercase italic">NFC.CORE</span>
+          </div>
+
+          <nav className="hidden md:flex items-center gap-10 text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">
+            {['home', 'features', 'enterprise', 'faq'].map((p) => (
+              <button 
+                key={p}
+                onClick={() => navigateTo(p)} 
+                className={`hover:text-white transition-colors ${currentPage === p ? 'text-cyan-400 underline underline-offset-8' : ''}`}
+              >
+                {p === 'home' ? 'Главная' : p === 'features' ? 'Спеки' : p === 'enterprise' ? 'Бизнес' : 'Вопросы'}
+              </button>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <a href={DOWNLOAD_URL} className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase hover:bg-white/10 transition-all">
+              <Download size={14} className="text-cyan-400" /> App
+            </a>
+            <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X /> : <Menu />}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Мобильное меню */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="fixed inset-0 z-40 bg-black pt-24 px-8 flex flex-col gap-8">
+            {['home', 'features', 'enterprise', 'faq'].map((p) => (
+              <button key={p} onClick={() => navigateTo(p)} className="text-3xl font-black uppercase text-left">
+                {p === 'home' ? 'Главная' : p === 'features' ? 'Спецификации' : p === 'enterprise' ? 'Для бизнеса' : 'FAQ'}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-20">
+        <AnimatePresence mode="wait">
+          
+          {/* ГЛАВНАЯ: КОНФИГУРАТОР */}
+          {currentPage === 'home' && (
+            <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid lg:grid-cols-2 gap-20 items-center">
+              <div className="order-2 lg:order-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold uppercase tracking-widest mb-6">
+                  <Sparkles size={12} /> New Generation 2026
+                </div>
+                <h1 className="text-6xl md:text-8xl font-black leading-[0.85] mb-8 tracking-tighter">
+                  ТВОЙ <br /> <span className="text-cyan-500">DIGITAL</span> <br /> КЛЮЧ.
+                </h1>
+                <div className="p-1 w-full bg-gradient-to-r from-white/10 to-transparent rounded-[2.8rem]">
+                  <div className="p-8 md:p-10 bg-[#050505] rounded-[2.5rem]">
+                    <UniversalForm 
+                      type="order" 
+                      presetName={customName} 
+                      onStartLoading={() => setStatus('loading')} 
+                      onComplete={() => setStatus('success')} 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="order-1 lg:order-2 flex flex-col items-center">
+                {/* Карта */}
+                <motion.div 
+                  style={{ perspective: 1000 }}
+                  animate={{ y: [0, -15, 0], rotateY: [-5, 5, -5] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                  className={`w-full max-w-[420px] aspect-[1.58/1] bg-gradient-to-br ${CARD_STYLES[activePreset].gradient} rounded-[2rem] border ${CARD_STYLES[activePreset].border} p-10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] relative overflow-hidden group`}
+                >
+                  <div className="flex justify-between items-start mb-16">
+                    <Cpu size={36} className={`${CARD_STYLES[activePreset].accent} opacity-80`} />
+                    <Zap size={24} className="text-white/20" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black tracking-[0.3em] text-white/40 uppercase">Card Holder</p>
+                    <p className="text-2xl md:text-3xl font-black tracking-widest uppercase truncate">{customName || 'NAME'}</p>
+                  </div>
+                  <div className="absolute top-0 right-[-50%] w-full h-full bg-white/5 skew-x-12 group-hover:translate-x-full transition-transform duration-1000" />
+                </motion.div>
+
+                {/* Селектор */}
+                <div className="mt-12 w-full max-w-[420px] space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 ml-2">Имя на карте</label>
+                    <input 
+                      maxLength={18} 
+                      value={customName} 
+                      onChange={e => setCustomName(e.target.value.toUpperCase())}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-center font-bold uppercase tracking-widest focus:border-cyan-500 outline-none transition-all"
+                    />
+                  </div>
+                  <div className="flex justify-center gap-6">
+                    {Object.keys(CARD_STYLES).map(s => (
+                      <button 
+                        key={s} 
+                        onClick={() => setActivePreset(s)} 
+                        className={`w-14 h-14 rounded-full border-4 ${activePreset === s ? 'border-white scale-110' : 'border-transparent'} bg-gradient-to-br ${CARD_STYLES[s].gradient} transition-all shadow-xl`}
+                      />
+                    ))}
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl font-black tracking-tighter italic">{CARD_STYLES[activePreset].price}</p>
+                    <p className="text-[10px] text-gray-500 uppercase mt-1">Доставка включена по РФ</p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* СПЕЦИФИКАЦИИ */}
+          {currentPage === 'features' && (
+            <motion.div key="features" {...pageTransition} className="max-w-4xl mx-auto">
+              <h2 className="text-5xl font-black mb-12 tracking-tighter uppercase italic">Технологии <span className="text-cyan-500">Core</span></h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                {[
+                  { icon: ShieldCheck, title: "Криптозащита", desc: "Аппаратное шифрование AES-256 в каждом чипе NTAG." },
+                  { icon: Zap, title: "Zero Latency", desc: "Считывание за 0.1 сек любым смартфоном с NFC." },
+                  { icon: Globe, title: "Cloud Sync", desc: "Меняй ссылку в приложении, карта обновится мгновенно." },
+                  { icon: Cpu, title: "Titanium Base", desc: "Авиационный сплав и анти-царапийное покрытие." }
+                ].map((item, i) => (
+                  <div key={i} className="p-8 bg-white/[0.02] border border-white/5 rounded-[2rem] flex gap-5">
+                    <item.icon className="text-cyan-500 shrink-0" size={32} />
+                    <div>
+                      <h4 className="font-black uppercase mb-2 tracking-widest text-sm">{item.title}</h4>
+                      <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* БИЗНЕС */}
+          {currentPage === 'enterprise' && (
+            <motion.div key="enterprise" {...pageTransition} className="max-w-2xl mx-auto text-center">
+              <Building2 size={64} className="text-cyan-500 mx-auto mb-8" />
+              <h2 className="text-5xl font-black mb-6 tracking-tighter uppercase italic">Enterprise</h2>
+              <p className="text-gray-500 mb-12 text-lg">Единая экосистема для корпоративного нетворкинга. Управляйте картами сотрудников через HRM-панель.</p>
+              <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[3rem] text-left">
+                <UniversalForm type="business" onStartLoading={() => setStatus('loading')} onComplete={() => setStatus('success')} />
+              </div>
+            </motion.div>
+          )}
+
+          {/* FAQ */}
+          {currentPage === 'faq' && (
+            <motion.div key="faq" {...pageTransition} className="max-w-3xl mx-auto">
+              <h2 className="text-5xl font-black mb-12 tracking-tighter text-center uppercase italic">Вопросы</h2>
+              <div className="space-y-4">
+                <FaqItem question="Нужно ли получателю приложение?" answer="Нет. Считывание происходит стандартными средствами iOS и Android. Ваша визитка откроется в браузере или контактах." />
+                <FaqItem question="Как изменить данные на карте?" answer="В нашем мобильном приложении. Вы просто вставляете новую ссылку, и при следующем касании карта выдаст актуальную информацию." />
+                <FaqItem question="Что делать при утере?" answer="Вы можете мгновенно деактивировать карту через приложение, чтобы никто не получил доступ к вашим ссылкам." />
+                <FaqItem question="Есть ли абонентская плата?" answer="Нет. Вы платите только один раз за физический носитель. Облачный сервис базово бесплатен." />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </main>
+
+      {/* ОВЕРЛЕИ СТАТУСА */}
+      <AnimatePresence>
+        {status !== 'idle' && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-xl bg-black/80 p-6">
+            <div className="bg-[#080808] border border-white/10 p-12 rounded-[3.5rem] text-center max-w-sm w-full shadow-2xl">
+              {status === 'loading' ? (
+                <div className="flex flex-col items-center">
+                  <div className="w-20 h-20 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin mb-8" />
+                  <p className="font-black tracking-[0.3em] uppercase text-xs">Шифрование данных...</p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center">
+                  <div className="w-20 h-20 bg-cyan-500/10 text-cyan-400 rounded-full flex items-center justify-center mb-8">
+                    <CheckCircle2 size={40} />
+                  </div>
+                  <h3 className="text-3xl font-black mb-4 uppercase italic">Отправлено</h3>
+                  <p className="text-gray-500 text-sm mb-10 leading-relaxed">Мы получили ваш запрос. Менеджер свяжется с вами в течение 15 минут в Telegram.</p>
+                  <button onClick={() => setStatus('idle')} className="w-full py-4 bg-white text-black font-black rounded-2xl active:scale-95 transition-all">ОТЛИЧНО</button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <footer className="border-t border-white/5 py-12 mt-20">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p className="text-[10px] font-black text-gray-700 uppercase tracking-[0.5em]">© 2026 NFC.CORE LABS • SECURED INFRASTRUCTURE</p>
+        </div>
+      </footer>
+    </div>
+  );
 }
+
+const pageTransition = {
+  initial: { opacity: 0, y: 30, filter: 'blur(15px)' },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)' },
+  exit: { opacity: 0, y: -30, filter: 'blur(15px)' },
+  transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+};
