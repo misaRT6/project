@@ -1,33 +1,29 @@
+// PART 2: Constants & API Hook
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Cpu, ShieldCheck, Zap, Sparkles, Sliders, Layers, 
-  ChevronRight, Apple, Smartphone, Globe, Download, 
-  Building2, HelpCircle, CheckCircle2, ArrowLeft, Menu, X
+  Cpu, Zap, Sparkles, Layers, ChevronRight, Download, 
+  Building2, CheckCircle2, Menu, X, Send, MapPin, Phone
 } from 'lucide-react';
 
-// Настройка стилей карт для конфигуратора
+const WORKER_URL = "https://t.growagardentrade.online"; // СЮДА ССЫЛКУ НА ТВОЙ ВОРКЕР
+
 const cardStyles = {
-  obsidian: {
-    name: 'Obsidian Black',
-    gradient: 'from-zinc-900 via-neutral-950 to-zinc-800',
-    border: 'border-zinc-700/50',
-    glow: 'rgba(255,255,255,0.05)',
-    price: '4,900 ₽'
-  },
-  cyber: {
-    name: 'Cyber Cyan',
-    gradient: 'from-cyan-950 via-slate-950 to-blue-900',
-    border: 'border-cyan-500/30',
-    glow: 'rgba(6,182,212,0.15)',
-    price: '5,400 ₽'
-  },
-  aurum: {
-    name: 'Liquid Gold',
-    gradient: 'from-amber-950 via-stone-950 to-yellow-900',
-    border: 'border-amber-500/30',
-    glow: 'rgba(234,179,8,0.15)',
-    price: '6,900 ₽'
+  obsidian: { name: 'Obsidian Black', gradient: 'from-zinc-900 via-neutral-950 to-zinc-800', border: 'border-zinc-700/50', price: '4,900 ₽/70 $' },
+  cyber: { name: 'Cyber Cyan', gradient: 'from-cyan-950 via-slate-950 to-blue-900', border: 'border-cyan-500/30', price: '5,400 ₽/76 $' },
+  aurum: { name: 'Liquid Gold', gradient: 'from-amber-950 via-stone-950 to-yellow-900', border: 'border-amber-500/30', price: '6,900 ₽/97 $' }
+};
+
+const api = {
+  send: async (data) => {
+    try {
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      return res.ok;
+    } catch { return false; }
   }
 };
 
