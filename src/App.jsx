@@ -41,6 +41,57 @@ export default function App() {
   const [customName, setCustomName] = useState('ALEXANDER V.');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+// PART 3: Form Components
+const FormInput = ({ icon: Icon, ...props }) => (
+  <div className="relative group">
+    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-cyan-400 transition-colors">
+      <Icon size={18} />
+    </div>
+    <input {...props} className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-4 py-4 focus:border-cyan-500 outline-none transition-all text-white placeholder:text-gray-600" />
+  </div>
+);
+
+const UniversalForm = ({ type, onComplete, onStartLoading }) => {
+  const [fields, setFields] = useState({ name: '', contact: '', location: '', details: '', size: '10-50' });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    onStartLoading();
+    const success = await api.send({ ...fields, type });
+    if (success) onComplete();
+    else alert("Ошибка отправки. Проверьте URL воркера.");
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <FormInput icon={Layers} required placeholder={type === 'business' ? "Название компании" : "Ваше Имя"} 
+        onChange={e => setFields({...fields, name: e.target.value})} />
+      
+      <FormInput icon={Phone} required placeholder="Связь: +7... / @telegram" 
+        onChange={e => setFields({...fields, contact: e.target.value})} />
+      
+      <FormInput icon={MapPin} required placeholder="Город, Область, Страна" 
+        onChange={e => setFields({...fields, location: e.target.value})} />
+
+      {type === 'business' && (
+        <select className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 outline-none text-gray-400"
+          onChange={e => setFields({...fields, size: e.target.value})}>
+          <option value="5-10">5-10 сотрудников</option>
+          <option value="10-50">10-50 сотрудников</option>
+          <option value="50+">50+ сотрудников</option>
+        </select>
+      )}
+
+      <textarea className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 h-24 outline-none focus:border-cyan-500 transition-all text-white" 
+        placeholder="Дополнительные детали заказа..." onChange={e => setFields({...fields, details: e.target.value})} />
+
+      <button className={`w-full py-5 rounded-2xl font-black transition-all flex items-center justify-center gap-2 ${type === 'business' ? 'bg-white text-black hover:bg-cyan-400' : 'bg-cyan-500 text-black hover:bg-white'}`}>
+        {type === 'business' ? 'ОТПРАВИТЬ ЗАПРОС' : 'ОФОРМИТЬ ЗАКАЗ'} <Send size={18} />
+      </button>
+    </form>
+  );
+};
+  
   // Ссылка на скачивание с рандомными символами, как запрашивалось
   const downloadUrl = "https://cdn.growagardentrade.online/qK9fX2wZ4";
 
